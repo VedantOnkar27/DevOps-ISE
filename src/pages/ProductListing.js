@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import '../css/ProductListing.css'
+import { Link } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 import { useCart } from '../context/CartContext'; // Use the correct hook
 import product1 from '../images/reddragon-k616.png'

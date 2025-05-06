@@ -1,3 +1,4 @@
+import React from "react";
 import { Link } from "react-router-dom";
 import { useCart } from "../context/CartContext"; // Only import the custom hook
 import "../css/Header.css";

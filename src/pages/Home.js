@@ -13,7 +13,7 @@ const Home = () => {
     <div className="home">
       <section className="hero">
         <div className="hero-text">
-          <h1>LOCK/OUT Version: 1</h1>
+          <h1>LOCK/OUT Version: 2</h1>
           <p>Unleash your game with epic gear.</p>
           <p> Dominate every level with unfair hardware advantages - no compromises, only power.</p>
           <button onClick={() => navigateto('features')} className="shop-now">Shop Now</button>

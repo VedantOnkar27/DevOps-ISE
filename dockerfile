@@ -1,17 +1,11 @@
-# Use the Windows Server Core base image (ensure it's available for your environment)
-FROM mcr.microsoft.com/windows/servercore:ltsc2022
+# Use the official Node.js image from Docker Hub
+FROM node:16
 
 # Set the working directory inside the container
 WORKDIR /app
 
 # Copy the package.json and package-lock.json to the container
-COPY package*.json ./ 
-
-# Install Node.js and npm in the Windows environment
-RUN powershell -Command \
-    Invoke-WebRequest -Uri https://nodejs.org/dist/v16.15.0/node-v16.15.0-x64.msi -OutFile nodejs.msi; \
-    Start-Process msiexec.exe -ArgumentList '/i', 'nodejs.msi', '/quiet', '/norestart' -NoNewWindow -Wait; \
-    Remove-Item -Force nodejs.msi
+COPY package*.json ./
 
 # Install the dependencies
 RUN npm install

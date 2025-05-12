@@ -2,8 +2,10 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: ecomwebsite-deployment
+  labels:
+    app: ecomwebsite
 spec:
-  replicas: 1
+  replicas: 5
   selector:
     matchLabels:
       app: ecomwebsite
@@ -15,18 +17,25 @@ spec:
       containers:
       - name: ecomwebsite
         image: vedantonkar24/ecomwebsite-image:latest
+        imagePullPolicy: Always
         ports:
-        - containerPort: 80  # Changed from 3000 to 80 for Nginx
+        - name: http
+          containerPort: 80
+
 ---
+
 apiVersion: v1
 kind: Service
 metadata:
   name: ecomwebsite-service
+  labels:
+    app: ecomwebsite
 spec:
   selector:
     app: ecomwebsite
   ports:
-    - protocol: TCP
+    - name: http
+      protocol: TCP
       port: 80
-      targetPort: 80  # Changed from 3000 to 80 to match container port
-  type: NodePort
+      targetPort: 80
+  type: LoadBalancer

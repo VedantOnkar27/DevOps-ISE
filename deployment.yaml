@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ecomwebsite-deployment
+spec:
+  replicas: 1  # Number of replicas (pods) you want to run
+  selector:
+    matchLabels:
+      app: ecomwebsite
+  template:
+    metadata:
+      labels:
+        app: ecomwebsite
+    spec:
+      containers:
+      - name: ecomwebsite
+        image: vedantonkar24/ecomwebsite-image:latest
+        ports:
+        - containerPort: 3000  # Ensure this matches your app's port

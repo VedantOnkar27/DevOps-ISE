@@ -1,0 +1,107 @@
+pipeline {
+    agent any
+
+    environment {
+        APP_DIR = 'C:/ProgramData/Jenkins/.jenkins/workspace/DevOps-ISE/ecomwebsite'
+        IMAGE_NAME = 'ecomwebsite-image'
+        DOCKER_REGISTRY = 'docker.io'
+        DOCKER_USERNAME = 'vedantonkar24' // Replace with your Docker Hub username
+        DOCKER_PASSWORD = 'Denom@007' // This is the stored Jenkins secret (PAT)
+        DOCKER_REPO = 'vedantonkar24/ecomwebsite-image'
+    }
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'master', url: 'https://github.com/VedantOnkar27/DevOps-ISE.git'
+            }
+        }
+
+        stage('Install and Start App') {
+            steps {
+                dir("${APP_DIR}") {
+                    bat 'npm install'
+                }
+            }
+        }
+
+        stage('Test') {
+            steps {
+                dir("${APP_DIR}") {
+                    bat 'npx jest --testMatch "src//*.test.js" --passWithNoTests'
+                }
+            }
+        }
+
+        stage('Code Review') {
+            steps {
+                dir("${APP_DIR}") {
+                    bat 'npx eslint src --ext .js,.jsx --no-error-on-unmatched-pattern'
+                }
+            }
+        }
+
+        stage('Ensure Docker') {
+            steps {
+                bat '''
+                    sc query com.docker.service | find "RUNNING"  1>nul
+                    if errorlevel 1 (
+                        echo "Starting Docker service..."
+                        net start com.docker.service || echo "Failed to start Docker service"
+                    ) else (
+                        echo "Docker service already running."
+                    )
+                '''
+            }
+        }
+
+        stage('List Files') {
+            steps {
+                script {
+                    bat 'dir'
+                }
+            }
+        }
+
+        stage('Login to Docker Hub') {
+            steps {
+                script {
+                    bat "echo ${DOCKER_PASSWORD} | docker login --username=${DOCKER_USERNAME} --password-stdin"
+                }
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+               script {
+                    bat "docker build . -t ${DOCKER_REPO}:latest"
+                }
+            }
+        }
+
+stage('Push Docker Image') {
+    steps {
+        script {
+            timeout(time: 5, unit: 'MINUTES') {
+                retry(2) {
+                    bat "docker push ${DOCKER_REPO}:latest"
+                }
+            }
+        }
+    }
+}
+
+        stage('Docker Run') {
+            steps {
+                bat "docker run -d -p 3000:3000 ${DOCKER_REPO}:latest"
+            }
+        }
+
+        stage('Declarative: Post Actions') {
+            steps {
+                echo 'Pipeline finished.'
+                echo 'Pipeline failed!' // You can change this based on success/failure.
+            }
+        }
+    }
+}

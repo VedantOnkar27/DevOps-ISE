@@ -8,8 +8,10 @@ pipeline {
         DOCKER_USERNAME = 'vedantonkar24' // Replace with your Docker Hub username
         DOCKER_PASSWORD = 'Denom@007' // This is the stored Jenkins secret (PAT)
         DOCKER_REPO = 'vedantonkar24/ecomwebsite-image'
+        KUBERNETES_DEPLOYMENT_FILE = 'deployment.yaml' // Replace with your actual deployment file path
+        KUBECONFIG = 'C:/ProgramData/Jenkins/.kube/config'
     }
-    
+
     stages {
         stage('Checkout') {
             steps {
@@ -17,7 +19,7 @@ pipeline {
             }
         }
 
-        stage('Install and Start App') {
+        stage('Install App') {
             steps {
                 dir("${APP_DIR}") {
                     bat 'npm install'
@@ -73,35 +75,62 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-               script {
+                script {
                     bat "docker build . -t ${DOCKER_REPO}:latest"
                 }
             }
         }
 
-stage('Push Docker Image') {
-    steps {
-        script {
-            timeout(time: 5, unit: 'MINUTES') {
-                retry(2) {
-                    bat "docker push ${DOCKER_REPO}:latest"
+        stage('Push Docker Image') {
+            steps {
+                script {
+                    timeout(time: 5, unit: 'MINUTES') {
+                        retry(2) {
+                            bat "docker push ${DOCKER_REPO}:latest"
+                        }
+                    }
                 }
             }
+        }
+stage('Check Kubernetes Connection') {
+    steps {
+        script {
+            bat 'kubectl cluster-info'
         }
     }
 }
 
-        stage('Docker Run') {
+        stage('Deploy to Kubernetes') {
             steps {
-                bat "docker run -d -p 3000:3000 ${DOCKER_REPO}:latest"
+                script {
+                    echo 'Deploying to Kubernetes...'
+
+                    // Apply Kubernetes deployment YAML
+                    bat "kubectl apply -f ${KUBERNETES_DEPLOYMENT_FILE} --validate=false"
+
+                    // Optionally scale the deployment
+                    echo 'Scaling the deployment to 5 replicas...'
+                    bat "kubectl scale deployment ecomwebsite-deployment --replicas=5"
+
+                    // Wait for the deployment to be successfully updated
+                    echo 'Waiting for deployment to be available...'
+                    bat "kubectl rollout status deployment ecomwebsite-deployment"
+                }
             }
         }
 
         stage('Declarative: Post Actions') {
             steps {
                 echo 'Pipeline finished.'
-                echo 'Pipeline failed!' // You can change this based on success/failure.
+                // You can add further actions here such as notifications.
+                // Example: Slack or Email notifications based on success/failure.
             }
+        }
+    }
+    post {
+        failure {
+            echo 'Pipeline failed!'
+            // Optional: Add failure notifications here (Slack, Email, etc.)
         }
     }
 }

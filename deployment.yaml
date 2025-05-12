@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: ecomwebsite-deployment
 spec:
-  replicas: 1  # Number of replicas (pods) you want to run
+  replicas: 1
   selector:
     matchLabels:
       app: ecomwebsite
@@ -16,4 +16,17 @@ spec:
       - name: ecomwebsite
         image: vedantonkar24/ecomwebsite-image:latest
         ports:
-        - containerPort: 3000  # Ensure this matches your app's port
+        - containerPort: 80  # Changed from 3000 to 80 for Nginx
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ecomwebsite-service
+spec:
+  selector:
+    app: ecomwebsite
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80  # Changed from 3000 to 80 to match container port
+  type: NodePort

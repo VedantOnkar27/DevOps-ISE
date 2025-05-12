@@ -1,20 +1,23 @@
-# Use the official Node.js image from Docker Hub
-FROM node:16
+# Step 1: Build the React app
+FROM node:16 as build
 
-# Set the working directory inside the container
 WORKDIR /app
 
-# Copy the package.json and package-lock.json to the container
 COPY package*.json ./
-
-# Install the dependencies
 RUN npm install
 
-# Copy the rest of the application files to the container
 COPY . .
+RUN npm run build
 
-# Expose the port the app will run on
-EXPOSE 3000
+# Step 2: Serve the build using Nginx
+FROM nginx:alpine
 
-# Start the application
-CMD ["npm", "start"]
+# Copy build output to Nginx html directory
+COPY --from=build /app/build /usr/share/nginx/html
+
+# Copy custom Nginx config (optional)
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]

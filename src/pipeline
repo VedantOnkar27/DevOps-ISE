@@ -130,7 +130,7 @@ stage('Check Kubernetes Connection') {
     post {
         failure {
             echo 'Pipeline failed!'
-            // Optional: Add failure notifications here (Slack, Email, etc.)
+            // Optional: Add failure notifications here (Slack, Email, etc.) Hello
         }
     }
 }
